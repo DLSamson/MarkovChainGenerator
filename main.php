@@ -14,7 +14,7 @@ $config = require_once 'config.php';
 $db = new Medoo($config['database']);
 $tg = new TextGenerator($log, $db, $config['table']);
 
-//require_once 'Actions/TestData.php';
+require_once 'Actions/TestData.php';
 
 $log->write('Сгенерированный текст: '.$tg->generateSentence(), Logger::Strong);
 

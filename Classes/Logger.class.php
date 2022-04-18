@@ -7,7 +7,7 @@ class Logger implements ILog
     public function __construct(string $logPath, $isDebug) {
         $this->logDirectory = $logPath;
         $this->isDebug = $isDebug;
-        $this->stream = fopen($logPath.'/log-'.$this->getTimeFile().'.txt', 'a');
+        $this->stream = fopen($logPath.'/log-'.$this->getTimeFile().'.log', 'a');
         $this->write('Log object has been created');
     }
     public function __destruct() {
