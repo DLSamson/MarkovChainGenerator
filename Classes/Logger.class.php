@@ -7,7 +7,7 @@ class Logger implements ILog
     public function __construct(string $logPath, $isDebug) {
         $this->logDirectory = $logPath;
         $this->isDebug = $isDebug;
-        $this->stream = fopen($logPath.'/log.txt', 'a');
+        $this->stream = fopen($logPath.'/log-'.$this->getTimeFile().'.txt', 'a');
         $this->write('Log object has been created');
     }
     public function __destruct() {
@@ -48,6 +48,12 @@ class Logger implements ILog
         $date = date($timeFormat, time());
         return $date;
     }
+    private function getTimeFile() : string {
+        $timeFormat = 'd_m_y';
+        $date = date($timeFormat, time());
+        return $date;
+    }
+
     private function getType($status) : string {
         $type = '';
         switch ($status) {
@@ -64,7 +70,7 @@ class Logger implements ILog
                 break;
             }
             case Logger::Strong: {
-                $type = ' Strong ';
+                $type = '_Strong';
                 break;
             }
         }
