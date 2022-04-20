@@ -1,8 +1,8 @@
-#Composer, IDE and Log files
+#Composer, IDE
 vendor
 .idea
 
-#Ignoring specific data
+#Ignoring specific data and logs
 *.txt
 *.json
 *.log
