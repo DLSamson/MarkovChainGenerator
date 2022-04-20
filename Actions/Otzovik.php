@@ -5,7 +5,7 @@
 /* @var Medoo $db           */
 /* @var array $confg        */
 
-$collectData['Reviews'] = function($json) {
+$collectData = function($json) {
     $json = json_decode($json, true);
     $json = $json['Companies'];
     $result = array();
@@ -17,4 +17,4 @@ $collectData['Reviews'] = function($json) {
     }
     return $result;
 };
-$tg->collectData('Data/data.json', $collectData['TextArray']);
+$tg->collectData('Data/exportFull0-500.json', $collectData);

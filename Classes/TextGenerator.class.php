@@ -5,16 +5,14 @@ require_once 'CarrotChain.class.php';
 
 class TextGenerator
 {
-    public function __construct(ILog $log, Medoo $database, string $tableName) {
+    public function __construct(ILog &$log, ICarrotDB &$database) {
         $this->log = $log;
         $this->db = $database;
-        $this->dataTableName = $tableName;
         $this->log->write('TextGenerator object has been created');
     }
 
     private ILog $log;
-    private Medoo $db;
-    private string $dataTableName;
+    private ICarrotDB $db;
 
     /**
      * @param $jsonPath
@@ -58,6 +56,7 @@ class TextGenerator
         $this->saveLinksToDB($chain);
         $this->log->write('Saving completed');
     }
+
     public function generateSentence() : string {
         $sentence = '';
         $currentWord = 'START';
@@ -74,60 +73,85 @@ class TextGenerator
 
         return $sentence;
     }
+    public static function prettifyTexts(string $text) : string {
+        $result = preg_replace('/(\.|,)+/', '. ', $text);
+        return $result == null ? die('Prettify texts error') : $result;
+    }
 
     /**
      * @param array $links
      * Array of ChainElements
      */
     private function saveLinksToDB(CarrotChain $chain) : void {
-        //Формируем список                  DONE
-        //Проверяем, что есть из списка     DONE
-        //Обновляем
-        //Добавляем
-        $checkData = array();
-        $checkData['OR'] = array();
-
-        $this->log->write('Making data to check');
-        foreach($chain->getArray() as $element) {
-            $checkData['OR']['AND #'.$element->word.$element->nextWord] = [
-                'word' => $element->word,
-                'nextWord' => $element->nextWord,
-            ];
+        $this->log->write('Checking out what we already have...');
+        $checkout = array();
+        foreach ($chain->getArray() as $element) {
+            $checkout['OR']['hash #'.$element->word.$element->nextWord] = $element->hash;
         }
 
-        $this->log->write('Making request to DATABASE');
-        $result = $this->db->select($this->dataTableName, ['word','nextWord', 'amount'], $checkData);
-
-        $this->log->write('Found rows: '.count($result));
+        $this->log->write('Making request to database');
+        $result = $this->db->select($this->dataTableName, ['hash'], $checkout);
+        empty($result) ? $this->log->write('No rows found') : $this->log->write('Found '. count($result).' rows');
         foreach ($result as $row) {
-            $this->log->write('Found row: '.$row['word'].' - '.$row['nextWord']);
+            $this->log->write('Found row - '.$row['hash']);
         }
 
-        $this->log->write('Making add and update lists...');
-        $result = $chain->deserializeArray($result);
-        $toAdd = $chain->getDiff($result);
-        $toUpdate = $chain->getDiff($toAdd);
+        $this->log->write('Preparing data...');
+        $newResult = array();
+        foreach ($result as $row) {
+            $newResult[] = $row['hash'];
+        }
+        $result = $newResult;
 
-        $this->log->write('Total rows    ' . $chain->getCount());
-        $this->log->write('Total adds    ' . $toAdd->getCount());
-        $this->log->write('Total updates ' . $toUpdate->getCount());
+        $insert = $chain->getDiffHash($result);
+        $update = $chain->getDiff($insert);
 
-        $this->log->write('Starting updating values');
+        $this->log->write('Total        - '.$chain->getCount());
+        $this->log->write('Total insert - '.$insert->getCount());
+        $this->log->write('Total update - '.$update->getCount());
 
-        $this->log->write('Inserting new values');
-        if($toAdd->getCount()) {
-            $this->db->insert($this->dataTableName, $toAdd->serializeArray());
+        $this->log->write('Making requests to database...');
+        $this->insertData($this->dataTableName, $insert->serializeArray());
+        $this->updateData($this->dataTableName, $update->serializeArray());
+
+        $this->log->write('Saving complete');
+    }
+
+    private function updateData(string $table, array $data) {
+        if(!count($data)) {
+            return;
         }
 
-
-        $this->log->write('Updating old values');
-        if($toUpdate->getCount()) {
-            $data = $this->makeMassiveUpdate($toUpdate);
+        $this->db->action(function (Medoo $db) use ($table, &$data) {
+            foreach ($data as $item) {
+                $db->update($table,
+                    [ 'amount[+]'=> $item['amount']],
+                    [
+                        'AND' => [
+                            'hash' => $item['hash'],
+                        ]
+                    ]
+                );
+            }
+        });
+    }
+    private function insertData(string $table, array $data) {
+        if(!count($data)) {
+            return;
         }
 
-        $data instanceof PDOStatement ? $this->log->write('Updating completed') : $this->log->write('Updating is not completed', Logger::Error);
-
-        $this->log->write('Collecting data completed');
+        $this->db->action(function (Medoo $db) use ($table, &$data) {
+            foreach ($data as $item) {
+                $db->insert($table,
+                    [
+                        'hash'=>$item['hash'],
+                        'word'=> $item['word'],
+                        'nextWord'=>$item['nextWord'],
+                        'amount'=>$item['amount'],
+                    ]
+                );
+            }
+        });
     }
 
     /**
@@ -135,34 +159,19 @@ class TextGenerator
      * Word => (nextWord => amount)
      * @return CarrotChain
      */
-    private function makeChainElements($links) : CarrotChain {
+    private function makeChainElements(array $links) : CarrotChain {
         $chain = new CarrotChain();
         foreach ($links as $word => $data) {
             foreach ($data as $nextWord => $amount) {
-                $chain->addElement(new ChainElement($word, $nextWord, $amount));
+                $chain->addElement(new ChainElement(ChainElement::generateHash($word, $nextWord), $word, $nextWord, $amount));
             }
         }
         return $chain;
-    }
-    private function makeMassiveUpdate(CarrotChain $update) {
-        $this->log->write("Making query...");
-        $query = array();
-        foreach ($update->getArray() as $item) {
-            $query[] = "UPDATE {$this->dataTableName} SET amount=amount+1 WHERE (word='{$item->word}' AND nextWord='{$item->nextWord}');";
-        }
-        $query = implode(' ', $query);
-
-        $this->log->write("Executing query...");
-        //$this->log->write('Query - '. $query);
-        $data = $this->db->query($query);
-        empty($data) ? $this->log->write('Problem has accured while executing', Logger::Error) : $this->log->write('Executing completed');
-        return $data;
     }
     private function makeWordLinks(array $explodedTexts) : array {
         $links = array('START' => [], 'END' => []);
         foreach($explodedTexts as $text) {
             $textSize = count($text);
-
             for($i = 0; $i < $textSize; $i++) {
                 if ($i == 0) {
                     if(in_array($text[$i], $links['START'])) {
@@ -173,14 +182,14 @@ class TextGenerator
                     }
                 }
                 if ($i == $textSize - 1) {
-                    if(in_array('END', $links[$text[$i]])) {
+                    if(in_array(['END'], $links[$text[$i]])) {
                         $links[$text[$i]]['END'] += 1;
                     }
                     else {
                         $links[$text[$i]]['END'] = 1;
                     }
                 }
-                if($i != $textSize - 1) {
+                if($i != $textSize - 1 && $i != 0) {
                     if(in_array($text[$i+1], $links[$text[$i]])) {
                         $links[$text[$i]][$text[$i+1]] += 1;
                     }

@@ -9,6 +9,7 @@ class Logger implements ILog
         $this->isDebug = $isDebug;
         $this->stream = fopen($logPath.'/log-'.$this->getTimeFile().'.log', 'a');
         $this->write('Log object has been created');
+        $this->startTime();
     }
     public function __destruct() {
         fclose($this->stream);
@@ -37,7 +38,7 @@ class Logger implements ILog
         $time = time();
         $this->startTime = $time;
     }
-    public function endTime() {
+    public function passedTime() {
         $currentTime = time();
         $difference = $currentTime - $this->startTime;
         $this->write('Execution took: '. $difference.'s');
