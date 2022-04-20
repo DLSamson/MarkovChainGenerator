@@ -1,6 +1,5 @@
 <?php
 
-
 require_once 'Classes/Logger.class.php';
 require_once 'Classes/CarrotDB.class.php';
 require_once 'Classes/DataCollector.class.php';

@@ -1,14 +1,15 @@
 <?php
 
 error_reporting(E_ERROR | E_WARNING);
-require_once 'vendor/autoload.php';
 const DEBUG_MODE = true;
 
+require_once 'vendor/autoload.php';
 require_once 'Actions/init.php';
 
 require_once 'Actions/TestData.php';
 //require_once 'Actions/Otzovik.php';
 //require_once 'Actions/DB_test.php';
+
 
 //@TODO Сделать цепной буфер, чтобы слова не повторялись как у робота;
 //@TODO Правила составления предложения русского языка
@@ -18,5 +19,4 @@ require_once 'Actions/TestData.php';
 // @TODO Сделать таймер выполнения
 // @TODO https://yandex.ru/dev/dictionary/doc/dg/reference/lookup.html - для определения типа слова
 // @TODO Эмоциональная окраска слова
-
-// @BUG сли база пустая, то уходи в бесконечный цикл
+// @TODO Если база пустая, то генерация предложения уходит в бесконечный цикл
