@@ -5,6 +5,7 @@ class DataCollector {
     {
         $this->log = &$log;
         $this->database = &$database;
+        $this->log->write('DataCollector object has been created');
     }
 
     private ILog $log;
@@ -23,7 +24,7 @@ class DataCollector {
         //Get array of exploded sentences
         $data = $this->explodeTexts($data);
         $this->log->write('Sentences count: '. count($data));
-        var_dump($data);
+
         $data = $this->makeLinks($data);
         $this->log->write('Links count: '. count($data));
         var_dump($data);
@@ -70,6 +71,7 @@ class DataCollector {
             for ($i = 0; $i < $sentenceSize; $i++) {
                 switch ($i) {
                     case 0:
+                        /* @TODO make amount counter with if...else statement #$links['START'][$sentence[$i]] += 1; */
                         $links['START'][] = $sentence[$i];
 
                         //If word is the only one, It can be used at the beginning and at the end as well.

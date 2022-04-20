@@ -10,7 +10,7 @@ use Medoo\Medoo;
 
 $log = new Logger('./Logs/', DEBUG_MODE);
 $config = require_once 'config.php';
-$database = new CarrotDB(new Medoo($config['database']));
+$database = new CarrotDB(new Medoo($config['database']), $log);
 $dataCollector = new DataCollector($log, $database);
 $textGenerator = new TextGenerator($log,$database);
 
