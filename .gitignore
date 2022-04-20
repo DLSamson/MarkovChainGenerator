@@ -1,7 +1,6 @@
 #Composer, IDE and Log files
 vendor
 .idea
-Logs
 
 #Ignoring specific data
 *.txt
