@@ -2,8 +2,8 @@
 
 /* @var Logger $log         */
 /* @var TextGenerator $tg   */
-/* @var Medoo $db           */
 /* @var array $confg        */
+/* @var MarkovChain $markovChain */
 
 $collectData = function($json) {
     $json = json_decode($json, true);
@@ -17,4 +17,8 @@ $collectData = function($json) {
     }
     return $result;
 };
-$tg->collectData('Data/exportFull0-500.json', $collectData);
+
+//$markovChain->collectData('Data/exportFull1500-2000.json', $collectData);
+$log->write('Result: '. $markovChain->generateSentence([
+    'minLength' => 40,
+]));

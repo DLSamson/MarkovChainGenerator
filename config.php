@@ -9,7 +9,7 @@ return [
         'password' => 'Carrot',
 
         'logging' => true,
-
+        'error' => PDO::ERRMODE_EXCEPTION
     ],
-    'table' => 'wordsdata',
+    'table' => 'wordstest',
 ];

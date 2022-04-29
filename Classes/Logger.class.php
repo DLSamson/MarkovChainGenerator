@@ -44,6 +44,16 @@ class Logger implements ILog
         $this->write('Execution took: '. $difference.'s');
     }
 
+    public function getMemoryUsage() {
+        $mem_usage = memory_get_usage(true);
+        if ($mem_usage < 1024)
+            $this->write($mem_usage." bytes");
+        elseif ($mem_usage < 1048576)
+            $this->write(round($mem_usage/1024,2)." kilobytes");
+        else
+            $this->write(round($mem_usage/1048576,2)." megabytes");
+    }
+
     private function getTime() : string {
         $timeFormat = '[H:i:s - d.m.y]: ';
         $date = date($timeFormat, time());

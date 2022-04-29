@@ -2,18 +2,18 @@
 
 class ChainElement
 {
-    public function __construct($hash, $word, $nextWord, $amount)
+    public function __construct($word, $nextWord, $amount)
     {
-        $this->hash = $hash;
         $this->word = $word;
         $this->nextWord = $nextWord;
         $this->amount = $amount;
+        $this->hash = ChainElement::generateHash($word, $nextWord);
     }
 
-    public string $hash;
     public string $word;
     public string $nextWord;
     public int $amount;
+    public string $hash;
 
     public function __toString(): string
     {

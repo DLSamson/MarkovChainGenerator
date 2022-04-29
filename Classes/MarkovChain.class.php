@@ -16,4 +16,7 @@ class MarkovChain
     public function collectData(string $path, callable $callback) : void {
         $this->dataCollector->collectData($path, $callback);
     }
+    public function generateSentence(array $params) : string {
+        return $this->textGenerator->generateSentence($params);
+    }
 }

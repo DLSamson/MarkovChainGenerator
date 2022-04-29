@@ -13,22 +13,40 @@ class CarrotChain
     public function addElement(ChainElement $element) {
         $this->elements[] = $element;
     }
+
     public function getCount() : int {
         return count($this->elements);
     }
-
     public function getDiff(CarrotChain $chain) : CarrotChain {
         $me = $this->serialize();
         $chain = $chain->serialize();
         $diff = array_diff_assoc($me, $chain);
-        return $this->unserialize($diff);
+        return $this->deserialize($diff);
     }
 
-    public static function serialize() : array {
-
+    public function serialize() : array {
+        $array = array();
+        foreach($this->elements as $element) {
+            $array[] = [
+                'word' => $element->word,
+                'nextWord' => $element->nextWord,
+                'amount' => $element->amount,
+                'hash' => empty($element->hash) ? ChainElement::generateHash($element->word, $element->nextWord) : $element->hash,
+            ];
+        }
+        return $array;
     }
-
-    public static function deserialize($data) : CarrotChain {
-
+    public static function deserialize(array $data) : CarrotChain {
+        $chain = new CarrotChain();
+        foreach($data as $element) {
+            $chain->addElement(
+                new ChainElement(
+                    $element['word'],
+                    $element['nextWord'],
+                    $element['amount']
+                )
+            );
+        }
+        return $chain;
     }
 }
